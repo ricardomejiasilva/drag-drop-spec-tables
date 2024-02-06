@@ -1,18 +1,21 @@
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
-import { Task } from "../types";
+import {
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Container } from "../types";
 import { useMemo } from "react";
-import TaskCard from "./TaskCard";
+import SortableItem from "./SortableItem";
 
-interface Props {
-  columnId: string;
-  tasks: Task[];
-}
-
-const SpecGroup = ({ columnId, tasks }: Props) => {
-  const tasksIds = useMemo(() => {
-    return tasks.map((task) => task.id);
-  }, [tasks]);
-
+const SpecGroup = ({
+  tasks,
+  count,
+  select,
+  columnId,
+  handleSelect,
+  selectedTasks,
+  isTranferingRight,
+}: Container) => {
   const { setNodeRef } = useSortable({
     id: columnId,
     data: {
@@ -21,16 +24,35 @@ const SpecGroup = ({ columnId, tasks }: Props) => {
     },
   });
 
+  const tasksIds = useMemo(() => {
+    return tasks.map((task) => task.id);
+  }, [tasks]);
+
   return (
-    <div ref={setNodeRef} className="spec-group">
+    <div
+      ref={setNodeRef}
+      className={
+        isTranferingRight ? "spec-group select-container" : "spec-group"
+      }
+      onClick={() => select(columnId)}
+    >
       <div className="title-container">
-        <p>Kitchen</p>
+        <p>{columnId === "spec-0" ? "Table" : "Sink"}</p>
       </div>
 
-      <SortableContext items={tasksIds}>
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+      <SortableContext strategy={rectSortingStrategy} items={tasksIds}>
+        {tasks.map((task) =>
+          !task.hidden ? (
+            <SortableItem
+              onSelect={(e) => handleSelect(task.id.toString())}
+              selected={selectedTasks.includes(task.id.toString())}
+              id={task.id.toString()}
+              key={task.id}
+              task={task}
+              count={count}
+            />
+          ) : null
+        )}
       </SortableContext>
       <div className="footer">
         <p>Drag/drop filters</p>

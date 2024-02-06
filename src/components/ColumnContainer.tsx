@@ -1,18 +1,22 @@
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
-import { Task } from "../types";
+import {
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Container } from "../types";
 import { useMemo } from "react";
-import TaskCard from "./TaskCard";
+import SortableItem from "./SortableItem";
 
-interface Props {
-  columnId: string;
-  tasks: Task[];
-}
-
-function ColumnContainer({ columnId, tasks }: Props) {
-  const tasksIds = useMemo(() => {
-    return tasks.map((task) => task.id);
-  }, [tasks]);
-
+const ColumnContainer = ({
+  tasks,
+  count,
+  select,
+  columnId,
+  handleSelect,
+  selectedTasks,
+  isTranferingRight,
+}: Container) => {
   const { setNodeRef } = useSortable({
     id: columnId,
     data: {
@@ -21,13 +25,33 @@ function ColumnContainer({ columnId, tasks }: Props) {
     },
   });
 
-  return (
-    <div ref={setNodeRef} className="filter-container">
+  const tasksIds = useMemo(() => {
+    return tasks.map((task) => task.id);
+  }, [tasks]);
 
-      <SortableContext items={tasksIds}>
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+  return (
+    <div
+      ref={setNodeRef}
+      className={
+        isTranferingRight && columnId !== "left"
+          ? "filter-container select-container"
+          : "filter-container"
+      }
+      onClick={() => select(columnId)}
+    >
+      <SortableContext strategy={rectSortingStrategy} items={tasksIds}>
+        {tasks.map((task) =>
+          !task.hidden ? (
+            <SortableItem
+              onSelect={(e) => handleSelect(task.id.toString())}
+              selected={selectedTasks.includes(task.id.toString())}
+              id={task.id.toString()}
+              key={task.id}
+              task={task}
+              count={count}
+            />
+          ) : null
+        )}
       </SortableContext>
     </div>
   );

@@ -1,46 +1,39 @@
-import { Task } from "../types";
+import React, { FC } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Item, { ItemProps } from "./Item";
 
-interface Props {
-  task: Task;
-}
-const TaskCard = ({ task }: Props) => {
+const SortableItem: FC<ItemProps> = (props) => {
   const {
-    setNodeRef,
+    isDragging,
     attributes,
     listeners,
+    setNodeRef,
     transform,
     transition,
-    isDragging,
   } = useSortable({
-    id: task.id,
+    id: props.task.id,
     data: {
       type: "Task",
-      task,
+      task: props.task,
     },
   });
 
   const style = {
-    transition,
     transform: CSS.Transform.toString(transform),
+    transition: transition || undefined,
   };
 
-  if (isDragging) {
-    return <div ref={setNodeRef} style={style} className="filter-item-placeholder" />;
-  }
-
   return (
-    <div
+    <Item
       ref={setNodeRef}
       style={style}
+      withOpacity={isDragging}
+      {...props}
       {...attributes}
       {...listeners}
-      className="filter-item"
-    >
-      <p>{task.content}</p>
-    </div>
+    />
   );
 };
 
-export default TaskCard;
+export default SortableItem;
