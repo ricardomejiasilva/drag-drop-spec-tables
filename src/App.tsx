@@ -146,39 +146,38 @@ function App() {
     // Dropping a Task over another Task (sorting between tasks)
     if (isActiveATask && isOverATask) {
       setTasks((tasks) => {
-        const activeIndex = tasks.findIndex((t) => t.id === activeId);
         const overIndex = tasks.findIndex((t) => t.id === overId);
-        const overTaskColumnId = tasks[overIndex].columnId;
 
-        // Update columnId for activeTask and selectedTasks to match the overTask's columnId
-        const updatedTasks = tasks.map((task) => {
-          if (
-            task.id === activeId ||
-            selectedTasks.includes(task.id.toString())
-          ) {
-            return { ...task, columnId: overTaskColumnId };
+        // Adjusted logic to reorder tasks
+        let updatedTasks = [...tasks];
+        const movingTasks = updatedTasks.filter((task) =>
+          selectedTasks.includes(task.id.toString())
+        );
+
+        // Remove selected tasks from their current positions
+        updatedTasks = updatedTasks.filter(
+          (task) => !selectedTasks.includes(task.id.toString())
+        );
+
+        // Determine new index for insertion, accounting for moving to the top
+        let newIndex = updatedTasks.findIndex((t) => t.id === overId);
+        if (newIndex === 0 && overId !== activeId) {
+          // Special case for moving to the very top
+          newIndex = -1; // This will be adjusted to 0 when using splice below
+        }
+
+        // Correctly splice in the moving tasks
+        updatedTasks.splice(newIndex + 1, 0, ...movingTasks);
+
+        // Update columnId for all tasks being moved
+        updatedTasks = updatedTasks.map((task) => {
+          if (selectedTasks.includes(task.id.toString())) {
+            return { ...task, columnId: tasks[overIndex].columnId };
           }
           return task;
         });
 
-        // Move the active task to the new position
-        // If there are other selected tasks, place them immediately after the active task
-        const finalTasks = arrayMove(updatedTasks, activeIndex, overIndex);
-        let lastIndex = overIndex;
-        selectedTasks.forEach((taskId) => {
-          if (taskId !== activeId) {
-            const selectedIndex = finalTasks.findIndex(
-              (t) => t.id.toString() === taskId
-            );
-            if (selectedIndex > -1) {
-              const [selectedTask] = finalTasks.splice(selectedIndex, 1);
-              finalTasks.splice(lastIndex, 0, selectedTask);
-              lastIndex++;
-            }
-          }
-        });
-
-        return finalTasks;
+        return updatedTasks;
       });
     }
 
