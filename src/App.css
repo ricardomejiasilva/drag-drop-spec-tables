@@ -13,7 +13,7 @@ p {
 }
 
 .App {
-  padding: 50px 200px;
+  padding: 2% 8%;
 }
 
 .search {
@@ -40,7 +40,6 @@ p {
   background-color: #fafafa;
   font-weight: 700;
   height: 20px;
-  width: 100%;
   padding: 16px;
   margin-bottom: 10px;
 }
