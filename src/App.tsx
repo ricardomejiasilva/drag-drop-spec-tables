@@ -19,45 +19,7 @@ import { useEffect, useState } from "react";
 import SpecGroup from "./components/SpecGroup";
 import Item from "./components/Item";
 import { createPortal } from "react-dom";
-
-const defaultTaks: Task[] = [
-  {
-    id: 1,
-    columnId: "left",
-    content: "plate",
-    hidden: false,
-  },
-  {
-    id: 2,
-    columnId: "left",
-    content: "fork",
-    hidden: false,
-  },
-  {
-    id: 3,
-    columnId: "left",
-    content: "spoon",
-    hidden: false,
-  },
-  {
-    id: 4,
-    columnId: "left",
-    content: "cup",
-    hidden: false,
-  },
-  {
-    id: 5,
-    columnId: "left",
-    content: "knife",
-    hidden: false,
-  },
-  {
-    id: 6,
-    columnId: "left",
-    content: "jar",
-    hidden: false,
-  },
-];
+import { defaultTaks } from "./components/TaskList";
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>(defaultTaks);
@@ -159,11 +121,20 @@ function App() {
           (task) => !selectedTasks.includes(task.id.toString())
         );
 
-        // Determine new index for insertion, accounting for moving to the top
+        // Determine new index for insertion
         let newIndex = updatedTasks.findIndex((t) => t.id === overId);
-        if (newIndex === 0 && overId !== activeId) {
-          // Special case for moving to the very top
-          newIndex = -1; // This will be adjusted to 0 when using splice below
+
+        if (newIndex === -1) {
+          // If overId not found in the list, calculate the index based on position
+          newIndex = tasks.findIndex((t) => t.id === overId);
+        } else {
+          // If overId found, check if dragging below it, then increment newIndex
+          const overTaskIndex = tasks.findIndex((t) => t.id === overId);
+          const activeTaskIndex = tasks.findIndex((t) => t.id === activeId);
+          if (activeTaskIndex > overTaskIndex) {
+            // If dragging the task downwards, decrement newIndex
+            newIndex--;
+          }
         }
 
         // Correctly splice in the moving tasks
