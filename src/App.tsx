@@ -28,6 +28,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [isTranferingRight, setIsTranferingRight] = useState<boolean>(false);
   const [selectedContainer, setSelectedContainer] = useState<string>("");
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const sensors = useSensors(
     useSensor(MouseSensor),
@@ -70,6 +71,15 @@ function App() {
     setIsDragging(true);
 
     const taskId = event.active.id.toString();
+
+    const taskHeight = 42; // Example height, adjust based on your item height
+    const taskIndex = tasks.findIndex((task) => task.id.toString() === taskId);
+    const firstSelectedIndex = tasks.findIndex((task) =>
+      selectedTasks.includes(task.id.toString())
+    );
+    const yOffset = (taskIndex - firstSelectedIndex) * taskHeight;
+
+    setDragOffset({ x: 0, y: yOffset });
 
     setSelectedTasks((selected) => {
       if (!selected.includes(taskId)) {
@@ -340,12 +350,16 @@ function App() {
             {createPortal(
               <DragOverlay>
                 {activeTask ? (
-                  <Item
-                    selected={selectedTasks.includes(activeTask.id.toString())}
-                    task={activeTask}
-                    count={selectedTasks.length}
-                    isDragging
-                  />
+                  <div style={{ transform: `translateY(${dragOffset.y}px)` }}>
+                    <Item
+                      selected={selectedTasks.includes(
+                        activeTask.id.toString()
+                      )}
+                      task={activeTask}
+                      count={selectedTasks.length}
+                      isDragging
+                    />
+                  </div>
                 ) : null}
               </DragOverlay>,
               document.body
