@@ -71,23 +71,29 @@ function App() {
     setIsDragging(true);
 
     const taskId = event.active.id.toString();
-
-    const taskHeight = 42; // Example height, adjust based on your item height
+    // Find the index of the task that's being dragged
     const taskIndex = tasks.findIndex((task) => task.id.toString() === taskId);
-    const firstSelectedIndex = tasks.findIndex((task) =>
-      selectedTasks.includes(task.id.toString())
-    );
-    const yOffset = (taskIndex - firstSelectedIndex) * taskHeight;
+
+    // Determine if the task is already selected
+    const isTaskSelected = selectedTasks.includes(taskId);
+
+    // Calculate yOffset only if the task is already selected
+    let yOffset = 0;
+    if (isTaskSelected) {
+      const firstSelectedIndex = tasks.findIndex((task) =>
+        selectedTasks.includes(task.id.toString())
+      );
+      yOffset = (taskIndex - firstSelectedIndex) * 42; // Example task height, adjust accordingly
+    }
 
     setDragOffset({ x: 0, y: yOffset });
 
-    setSelectedTasks((selected) => {
-      if (!selected.includes(taskId)) {
-        return [...selected, taskId];
-      }
-      return selected;
-    });
+    // Select the task if it's not already selected
+    if (!isTaskSelected) {
+      setSelectedTasks((selected) => [...selected, taskId]);
+    }
 
+    // Hide other selected tasks if necessary
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         selectedTasks.includes(task.id.toString()) &&
@@ -97,9 +103,9 @@ function App() {
       )
     );
 
+    // Set activeTask for DragOverlay
     if (event.active.data.current?.type === "Task") {
       setActiveTask(event.active.data.current.task);
-      return;
     }
   }
 
