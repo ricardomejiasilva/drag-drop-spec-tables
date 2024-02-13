@@ -3,19 +3,19 @@ import { Task } from "../types";
 export const defaultTaks: Task[] = [
   {
     id: 1,
-    columnId: "left",
+    columnId: "right",
     content: "plate",
     hidden: false,
   },
   {
     id: 2,
-    columnId: "left",
+    columnId: "right",
     content: "fork",
     hidden: false,
   },
   {
     id: 3,
-    columnId: "left",
+    columnId: "right",
     content: "spoon",
     hidden: false,
   },

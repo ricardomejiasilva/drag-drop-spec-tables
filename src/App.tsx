@@ -117,60 +117,79 @@ function App() {
     const overId = over.id;
     const isActiveATask = active.data.current?.type === "Task";
     const isOverATask = over.data.current?.type === "Task";
-
+    const isOverAColumn = over.data.current?.type === "Column";
     if (activeId === overId) return;
     if (!isActiveATask) return;
 
+    console.log(overId);
+
     // Dropping a Task over another Task (sorting between tasks)
-    if (isActiveATask && isOverATask) {
-      setTasks((tasks) => {
-        const overIndex = tasks.findIndex((t) => t.id === overId);
+    if (isOverATask || isOverAColumn) {
+      setTasks((prevTasks) => {
+        const activeIndex = prevTasks.findIndex((task) => task.id === activeId);
+        const overIndex = isOverATask
+          ? prevTasks.findIndex((task) => task.id === overId)
+          : -1;
+        const activeTask = prevTasks[activeIndex];
+        let newTasks = [...prevTasks];
 
-        // Adjusted logic to reorder tasks
-        let updatedTasks = [...tasks];
-        const movingTasks = updatedTasks.filter((task) =>
-          selectedTasks.includes(task.id.toString())
-        );
-
-        // Remove selected tasks from their current positions
-        updatedTasks = updatedTasks.filter(
+        // Remove the tasks being dragged from their original positions
+        newTasks = newTasks.filter(
           (task) => !selectedTasks.includes(task.id.toString())
         );
 
-        // Determine new index for insertion
-        let newIndex = updatedTasks.findIndex((t) => t.id === overId);
+        if (isOverATask) {
+          const targetIndex = newTasks.findIndex((task) => task.id === overId);
+          const overTask = prevTasks[overIndex];
 
-        if (newIndex === -1) {
-          // If overId not found in the list, calculate the index based on position
-          newIndex = tasks.findIndex((t) => t.id === overId);
-        } else {
-          // If overId found, check if dragging below it, then increment newIndex
-          const overTaskIndex = tasks.findIndex((t) => t.id === overId);
-          const activeTaskIndex = tasks.findIndex((t) => t.id === activeId);
-          if (activeTaskIndex > overTaskIndex) {
-            // If dragging the task downwards, decrement newIndex
-            newIndex--;
+          // Determine the new index for the dragged task
+          let newIndex = targetIndex;
+          if (activeIndex > overIndex) {
+            // Dragging upwards
+            newIndex = targetIndex;
+          } else if (activeIndex < overIndex) {
+            // Dragging downwards
+            newIndex = targetIndex + 1;
           }
+
+          // Insert the active task and any additionally selected tasks at the new index
+          newTasks.splice(
+            newIndex,
+            0,
+            activeTask,
+            ...selectedTasks
+              .filter((id) => id !== activeTask.id.toString())
+              .map((id) => prevTasks.find((task) => task.id.toString() === id))
+              .filter((task): task is Task => task !== undefined)
+          );
+
+          // Update the columnId for the dragged tasks if moving across containers
+          if (activeTask.columnId !== overTask.columnId) {
+            newTasks = newTasks.map((task) => ({
+              ...task,
+              columnId: selectedTasks.includes(task.id.toString())
+                ? overTask.columnId
+                : task.columnId,
+            }));
+          }
+        } else if (isOverAColumn) {
+          // Handle column logic if necessary, for example:
+          // If dropping on a column, append to the end of that column
+          const columnId = over.data.current?.id;
+          selectedTasks.forEach((id) => {
+            const task = prevTasks.find((task) => task.id.toString() === id);
+            if (task) {
+              newTasks.push({
+                ...task,
+                columnId: columnId,
+              });
+            }
+          });
         }
 
-        // Correctly splice in the moving tasks
-        updatedTasks.splice(newIndex + 1, 0, ...movingTasks);
-
-        // Update columnId for all tasks being moved
-        updatedTasks = updatedTasks.map((task) => {
-          if (selectedTasks.includes(task.id.toString())) {
-            return { ...task, columnId: tasks[overIndex].columnId };
-          }
-          return task;
-        });
-
-        return updatedTasks;
+        return newTasks;
       });
     }
-
-    const isOverAColumn =
-      over.data.current?.type === "Column" ||
-      over.data.current?.type === "Group";
 
     // Dropping a Task over a column (needed)
     let useCol: string = "";
