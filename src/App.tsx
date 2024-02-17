@@ -90,17 +90,22 @@ function App() {
 
     // Select the task if it's not already selected
     if (!isTaskSelected) {
-      setSelectedTasks((selected) => [...selected, taskId]);
+      setSelectedTasks([taskId]);
     }
 
     // Hide other selected tasks if necessary
     setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        selectedTasks.includes(task.id.toString()) &&
-        task.id !== event.active.id
-          ? { ...task, hidden: true }
-          : task
-      )
+      prevTasks.map((task) => {
+        if (
+          selectedTasks.length > 1 &&
+          selectedTasks.includes(task.id.toString()) &&
+          task.id !== event.active.id
+        ) {
+          return { ...task, hidden: true };
+        } else {
+          return task;
+        }
+      })
     );
 
     // Set activeTask for DragOverlay
@@ -151,6 +156,28 @@ function App() {
             // If dragging the task downwards, decrement newIndex
             newIndex--;
           }
+        }
+
+        // Extract the numeric part from the columnId
+        const extractNumber = (columnId: string) => {
+          return parseInt(columnId.split("-")[1]);
+        };
+
+        // Get the numeric values of active and over columnIds
+        const activeColumnIdNumber = extractNumber(
+          event.active.data?.current?.task?.columnId
+        );
+        const overColumnIdNumber = extractNumber(
+          event.over?.data?.current?.task?.columnId
+        );
+
+        // Perform the comparison and adjust newIndex accordingly
+        if (activeColumnIdNumber < overColumnIdNumber) {
+          newIndex--;
+        }
+
+        if (activeColumnIdNumber > overColumnIdNumber) {
+          newIndex++;
         }
 
         // Correctly splice in the moving tasks
