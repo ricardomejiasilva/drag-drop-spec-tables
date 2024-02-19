@@ -144,6 +144,7 @@ function App() {
 
         // Determine new index for insertion
         let newIndex = updatedTasks.findIndex((t) => t.id === overId);
+        const initialIndex = newIndex;
 
         const overTaskIndex = tasks.findIndex((t) => t.id === overId);
         const activeTaskIndex = tasks.findIndex((t) => t.id === activeId);
@@ -201,6 +202,24 @@ function App() {
             event.over?.data?.current?.task?.columnId === "right"
           ) {
             newIndex--;
+          }
+
+          if (
+            event.active.data?.current?.task?.columnId !== "left" &&
+            event.over?.data?.current?.task?.columnId === "left"
+          ) {
+            if (initialIndex !== newIndex + 1) {
+              newIndex--;
+            }
+          }
+
+          if (
+            event.active.data?.current?.task?.columnId === "left" &&
+            event.over?.data?.current?.task?.columnId !== "left"
+          ) {
+            if (initialIndex !== newIndex + 1) {
+              newIndex--;
+            }
           }
         }
 
