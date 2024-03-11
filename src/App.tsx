@@ -283,6 +283,7 @@ function App() {
   function onDragEnd(event: DragEndEvent) {
     setIsDragging(false);
     setActiveTask(null);
+    setSelectedTasks([])
 
     const { active, over } = event;
     if (!over) return;
